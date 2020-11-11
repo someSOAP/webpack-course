@@ -20,3 +20,5 @@ function createAnalitycs(){
         }
     }
 }
+
+export default createAnalitycs;
