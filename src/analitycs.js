@@ -1,7 +1,7 @@
 import * as $ from 'jquery';
 
 function createAnalitycs(){
-    let counter = 0;
+    let counter  = 0;
     let isDestroyed = false;
 
     const listener = () => counter++;

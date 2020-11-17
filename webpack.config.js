@@ -30,6 +30,18 @@ const cssLoaders = (extra) => {
     return loaders;
 }
 
+const babelOptions = (preset) => {
+    const options = {
+        presets: ['@babel/preset-env'],
+        plugins: ['@babel/plugin-proposal-class-properties']
+      }
+
+      if(preset){
+          options.presets.push(preset)
+      }
+
+      return options;
+};
 
 console.log(isDev ? "DEV MODE" : "PRODUCTION MODE");
 
@@ -54,7 +66,7 @@ module.exports = {
     context: path.resolve(__dirname, './src'),
     mode: 'development',
     entry: {
-        main: './index.js',
+        main: ['@babel/polyfill', './index.jsx'],
         analitycs: './analitycs.js',
     },
     output: {
@@ -62,7 +74,7 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
     },
     resolve: {
-        extensions: ['.js', '.png', '.json', '.css'],
+        extensions: ['.ts', '.js', '.png', '.json', '.css'],
         alias: {
             '@models': path.resolve(__dirname, './src/models'),
             '@': path.resolve(__dirname, './src')
@@ -123,6 +135,30 @@ module.exports = {
             {
                 test: /\.csv$/,
                 use: ['csv-loader']
+            },
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: {
+                  loader: 'babel-loader',
+                  options: babelOptions(),
+                }
+            },
+            {
+                test: /\.ts$/,
+                exclude: /node_modules/,
+                use: {
+                  loader: 'babel-loader',
+                  options: babelOptions('@babel/preset-typescript'),
+                }
+            },
+            {
+                test: /\.jsx$/,
+                exclude: /node_modules/,
+                use: {
+                  loader: 'babel-loader',
+                  options: babelOptions('@babel/preset-react'),
+                }
             }
         ]
     }
