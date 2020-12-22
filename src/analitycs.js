@@ -1,5 +1,9 @@
 import * as $ from 'jquery';
 
+const x = "mem1";
+
+// import("loadash").then(_ => console.log('loadash', _.random(0, 42, true)))
+
 function createAnalitycs(){
     let counter  = 0;
     let isDestroyed = false;

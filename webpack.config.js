@@ -1,16 +1,18 @@
+/* eslint-disable no-undef */
 const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TerserWebpackPlugin = require('terser-webpack-plugin');
 const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin');
-
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 const isDev = process.env.NODE_ENV === 'development';
 const isProd = !isDev;
 
 const filename = ext => isDev ? `[name].${ext}` : `[name].[hash].${ext}`;
+
 
 const cssLoaders = (extra) => {
     const loaders = [
@@ -19,10 +21,10 @@ const cssLoaders = (extra) => {
             options: {
                 publicPath: '',
             }
-        }, 
+        },
         'css-loader'
     ]
-        
+
     if(extra) {
         loaders.push(extra)
     }
@@ -43,6 +45,21 @@ const babelOptions = (preset) => {
       return options;
 };
 
+
+
+const jsLoaders = () => {
+    const loaders = [{
+        loader: 'babel-loader',
+        options: babelOptions()
+    }];
+
+    if (isDev){
+        loaders.push('eslint-loader');
+    }
+
+    return loaders;
+}
+
 console.log(isDev ? "DEV MODE" : "PRODUCTION MODE");
 
 const optimization = () => {
@@ -61,6 +78,38 @@ const optimization = () => {
 
     return config;
 }
+
+const plugins = () => {
+    const base = [
+        new HTMLWebpackPlugin({
+            template: './index.html',
+            minify: {
+                collapseWhitespace: isProd,
+            }
+        }),
+        new CleanWebpackPlugin(),
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: path.resolve(__dirname, './src/assets/favicon.png'),
+                    to: path.resolve(__dirname, './dist/assets')
+                }
+            ]
+        }),
+        new MiniCssExtractPlugin({
+            filename: filename('css')
+        }),
+    ]
+
+    if(isDev){
+        base.push(new BundleAnalyzerPlugin())
+    }
+
+    return base;
+
+}
+
+
 
 module.exports = {
     context: path.resolve(__dirname, './src'),
@@ -86,26 +135,8 @@ module.exports = {
         open: true,
         hot: isDev,
     },
-    plugins: [
-        new HTMLWebpackPlugin({
-            template: './index.html',
-            minify: {
-                collapseWhitespace: isProd,
-            }
-        }),
-        new CleanWebpackPlugin(),
-        new CopyWebpackPlugin({
-            patterns: [
-                {
-                    from: path.resolve(__dirname, './src/assets/favicon.png'),
-                    to: path.resolve(__dirname, './dist/assets')
-                }
-            ]
-        }),
-        new MiniCssExtractPlugin({
-            filename: filename('css')
-        }),
-    ],
+    devtool: isDev ? 'source-map' : undefined,
+    plugins: plugins(),
     module: {
         rules: [
             {
@@ -139,10 +170,7 @@ module.exports = {
             {
                 test: /\.js$/,
                 exclude: /node_modules/,
-                use: {
-                  loader: 'babel-loader',
-                  options: babelOptions(),
-                }
+                use: jsLoaders()
             },
             {
                 test: /\.ts$/,
